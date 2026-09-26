@@ -122,15 +122,18 @@ reader.addEventListener("click",()=>{
 });
 
 document.addEventListener("keydown",e=>{
-  if(e.isComposing)return;
+  if(e.isComposing || e.defaultPrevented)return;
   if(setup.style.display!=="none"){
-    if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)){
+    // The on-glasses composer can temporarily take focus off the page. Never
+    // interpret its keys as a request to jump to the first field.
+    const index=setupControls.indexOf(document.activeElement);
+    if(index<0 || e.target!==document.activeElement)return;
+    if(e.key==="ArrowUp"||e.key==="ArrowDown"){
       e.preventDefault();
-      const index=setupControls.indexOf(document.activeElement);
-      const direction=e.key==="ArrowDown"||e.key==="ArrowLeft" ? 1 : -1;
-      setupControls[(index+direction+setupControls.length)%setupControls.length].focus();
+      const next=index+(e.key==="ArrowDown" ? 1 : -1);
+      setupControls[Math.max(0,Math.min(setupControls.length-1,next))].focus();
     }
-    // Let Select activate a focused input's composer or the Load button.
+    // Leave left/right for the text cursor and Select for the input composer.
     return;
   }
   if(["Enter"," ","ArrowUp","ArrowDown","Escape"].includes(e.key))e.preventDefault();
