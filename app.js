@@ -7,6 +7,13 @@ let speed = Number(localStorage.getItem("quran-speed") || 25);
 const $ = id => document.getElementById(id);
 const setup = $("setup"), reader = $("reader"), versesEl = $("verses");
 const title = $("title"), counter = $("counter"), message = $("message");
+const setupControls = [$("surahInput"), $("startInput"), $("endInput"), $("loadBtn")];
+
+function showSetup(){
+  restart();
+  setup.style.display="block";
+  setupControls[0].focus();
+}
 
 function arabicDigits(n){
   return String(n).replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]);
@@ -74,6 +81,7 @@ async function loadRange(){
     saveCurrent(); render();
     message.textContent="تم التحميل — اضغط Enter للتشغيل";
     setup.style.display="none";
+    reader.focus();
   }catch(e){
     message.textContent="تعذر التحميل. تأكد من اتصال النظارة بالإنترنت.";
   }
@@ -109,14 +117,27 @@ function speedUp(){speed=Math.min(80,speed+5);updateStatus()}
 function speedDown(){speed=Math.max(5,speed-5);updateStatus()}
 
 $("loadBtn").addEventListener("click",loadRange);
-reader.addEventListener("click",playPause);
+reader.addEventListener("click",()=>{
+  if(setup.style.display==="none")playPause();
+});
 
 document.addEventListener("keydown",e=>{
-  if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Enter","Escape"," "].includes(e.key))e.preventDefault();
+  if(e.isComposing)return;
+  if(setup.style.display!=="none"){
+    if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)){
+      e.preventDefault();
+      const index=setupControls.indexOf(document.activeElement);
+      const direction=e.key==="ArrowDown"||e.key==="ArrowLeft" ? 1 : -1;
+      setupControls[(index+direction+setupControls.length)%setupControls.length].focus();
+    }
+    // Let Select activate a focused input's composer or the Load button.
+    return;
+  }
+  if(["Enter"," ","ArrowUp","ArrowDown","Escape"].includes(e.key))e.preventDefault();
   if(e.key==="Enter"||e.key===" ")playPause();
   else if(e.key==="ArrowUp")speedUp();
   else if(e.key==="ArrowDown")speedDown();
-  else if(e.key==="Escape"){restart();setup.style.display="block";}
+  else if(e.key==="Escape")showSetup();
 });
 
 const savedRange=JSON.parse(localStorage.getItem("quran-range")||"null");
@@ -128,3 +149,4 @@ if(!restore()){
   render();
 }
 updateStatus();
+setupControls[0].focus();
