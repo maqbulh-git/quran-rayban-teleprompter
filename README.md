@@ -16,6 +16,7 @@ Examples:
 - Surah 36, 1–12
 
 Controls:
+- On the selection screen, swipe up/down to move between Surah, Start, End, and Load. Select an input to enter a number, then select تحميل to load the passage.
 - Enter/Space: play/pause
 - Up/Down: change speed
 - Escape: restart/show selector
