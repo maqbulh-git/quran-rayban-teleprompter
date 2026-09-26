@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=600,height=600,initial-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#000">
+  <title>Quran Teleprompter</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main id="app">
+  <header id="topbar">
+    <span id="title">القرآن الكريم</span>
+    <span id="counter">—</span>
+  </header>
+
+  <section id="setup">
+    <div class="setupTitle">اختيار الآيات</div>
+    <label>السورة: <input id="surahInput" inputmode="numeric" value="17" aria-label="Surah number"></label>
+    <label>من: <input id="startInput" inputmode="numeric" value="1" aria-label="Start verse"></label>
+    <label>إلى: <input id="endInput" inputmode="numeric" value="40" aria-label="End verse"></label>
+    <button id="loadBtn">تحميل</button>
+    <div id="message">اكتب رقم السورة والآيات ثم اضغط تحميل</div>
+  </section>
+
+  <section id="reader" tabindex="0">
+    <div id="verses"></div>
+  </section>
+
+  <footer id="controls">
+    <span id="status">▶</span>
+    <span id="speed">سرعة ٢٥</span>
+    <span>↑↓ السرعة</span>
+    <span>Enter تشغيل/إيقاف</span>
+  </footer>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
