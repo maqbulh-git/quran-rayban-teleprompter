@@ -20,6 +20,10 @@ try{
 }catch(e){}
 let step=0;
 
+function updateRangeSummary(){
+  $("rangeSummary").textContent=`السورة ${range.s} · من ${range.start} · إلى ${range.end}`;
+}
+
 function showStep(index){
   step=index;
   const field=fields[step];
@@ -29,13 +33,14 @@ function showStep(index){
   numberInput.value=range[field.key];
   backBtn.hidden=step===0;
   nextBtn.textContent=step===fields.length-1?"تحميل":"التالي";
-  $("rangeSummary").textContent=`السورة ${range.s} · من ${range.start} · إلى ${range.end}`;
+  updateRangeSummary();
   message.textContent="اكتب الرقم ثم اختر " + nextBtn.textContent;
   numberInput.focus();
 }
 
 function saveStep(){
   range[fields[step].key]=numberInput.value.trim();
+  updateRangeSummary();
 }
 
 function advance(){
@@ -158,6 +163,7 @@ function speedDown(){speed=Math.max(5,speed-5);updateStatus()}
 
 nextBtn.addEventListener("click",advance);
 backBtn.addEventListener("click",()=>{saveStep();showStep(step-1)});
+numberInput.addEventListener("input",saveStep);
 reader.addEventListener("click",()=>{
   if(setup.style.display==="none")playPause();
 });
@@ -165,7 +171,7 @@ reader.addEventListener("click",()=>{
 document.addEventListener("keydown",e=>{
   if(e.isComposing || e.defaultPrevented)return;
   if(setup.style.display!=="none"){
-    const setupControls=[numberInput,...(backBtn.hidden?[]:[backBtn]),nextBtn];
+    const setupControls=[numberInput,nextBtn,...(backBtn.hidden?[]:[backBtn])];
     const index=setupControls.indexOf(document.activeElement);
     if(index<0 || e.target!==document.activeElement)return;
     if(e.key==="ArrowUp"||e.key==="ArrowDown"){
