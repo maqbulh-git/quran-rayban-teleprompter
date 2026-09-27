@@ -6,19 +6,22 @@ body{direction:rtl}
 #topbar{position:absolute;top:0;left:0;right:0;height:54px;z-index:5;
 display:flex;justify-content:space-between;align-items:center;padding:0 24px;
 background:rgba(0,0,0,.92);font-size:21px;font-weight:600}
-#setup{position:absolute;top:54px;left:18px;right:18px;height:160px;z-index:6;
+#setup{position:absolute;top:54px;left:18px;right:18px;height:195px;z-index:6;
 background:rgba(10,10,10,.97);border-bottom:1px solid #444;padding:12px 16px;
 font-size:20px}
 .setupTitle{font-size:22px;font-weight:700;margin-bottom:8px}
+#stepCount{font-size:17px;color:#bbb;margin-right:10px}
 label{display:inline-flex;align-items:center;gap:5px;margin-left:12px}
-input{width:70px;height:38px;background:#111;color:#fff;border:1px solid #777;
+input{width:86px;height:42px;background:#111;color:#fff;border:1px solid #777;
 border-radius:6px;font-size:22px;text-align:center}
 button{height:40px;padding:0 18px;background:#fff;color:#000;border:0;border-radius:7px;
-font-size:19px;font-weight:700}
+font-size:19px;font-weight:700;margin-right:10px}
+button[hidden]{display:none}
 input:focus,button:focus{outline:3px solid #4ce0ff;outline-offset:3px}
+#rangeSummary{font-size:17px;color:#fff;margin-top:12px}
 #message{font-size:15px;color:#bbb;margin-top:9px}
 #reader{position:absolute;top:54px;left:0;right:0;bottom:52px;overflow:hidden;outline:none}
-#verses{position:absolute;left:24px;right:24px;top:0;padding-top:170px;padding-bottom:450px}
+#verses{position:absolute;left:24px;right:24px;top:0;padding-top:210px;padding-bottom:450px}
 .verse{direction:rtl;text-align:right;font-size:36px;line-height:1.95;font-weight:500;
 margin:0 0 34px 0}
 .ayah{font-size:.72em;margin-right:10px;vertical-align:middle}

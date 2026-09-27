@@ -7,12 +7,53 @@ let speed = Number(localStorage.getItem("quran-speed") || 25);
 const $ = id => document.getElementById(id);
 const setup = $("setup"), reader = $("reader"), versesEl = $("verses");
 const title = $("title"), counter = $("counter"), message = $("message");
-const setupControls = [$("surahInput"), $("startInput"), $("endInput"), $("loadBtn")];
+const numberInput = $("numberInput"), backBtn = $("backBtn"), nextBtn = $("nextBtn");
+const fields = [
+  {key:"s", label:"السورة", accessible:"Surah number"},
+  {key:"start", label:"من الآية", accessible:"Start verse"},
+  {key:"end", label:"إلى الآية", accessible:"End verse"}
+];
+const range = {s:"17", start:"1", end:"40"};
+try{
+  const saved=JSON.parse(localStorage.getItem("quran-range")||"null");
+  if(saved)for(const field of fields)if(saved[field.key]!=null)range[field.key]=String(saved[field.key]);
+}catch(e){}
+let step=0;
+
+function showStep(index){
+  step=index;
+  const field=fields[step];
+  $("fieldLabel").textContent=field.label;
+  $("stepCount").textContent=`${arabicDigits(step+1)}/٣`;
+  numberInput.setAttribute("aria-label",field.accessible);
+  numberInput.value=range[field.key];
+  backBtn.hidden=step===0;
+  nextBtn.textContent=step===fields.length-1?"تحميل":"التالي";
+  $("rangeSummary").textContent=`السورة ${range.s} · من ${range.start} · إلى ${range.end}`;
+  message.textContent="اكتب الرقم ثم اختر " + nextBtn.textContent;
+  numberInput.focus();
+}
+
+function saveStep(){
+  range[fields[step].key]=numberInput.value.trim();
+}
+
+function advance(){
+  saveStep();
+  const n=Number(range[fields[step].key]);
+  if(!Number.isInteger(n)||n<1||(step===0&&n>114)||(step===2&&n<Number(range.start))){
+    message.textContent="أدخل رقمًا صحيحًا";
+    numberInput.focus();
+    return;
+  }
+  if(step<fields.length-1)showStep(step+1);
+  else loadRange();
+}
 
 function showSetup(){
   restart();
   setup.style.display="block";
-  setupControls[0].focus();
+  showStep(0);
 }
 
 function arabicDigits(n){
@@ -60,8 +101,7 @@ function escapeHtml(s){
 
 async function loadRange(){
   stop();
-  const s=Number($("surahInput").value), start=Number($("startInput").value),
-        end=Number($("endInput").value);
+  const s=Number(range.s), start=Number(range.start), end=Number(range.end);
   if(!Number.isInteger(s)||s<1||s>114||!Number.isInteger(start)||start<1||
      !Number.isInteger(end)||end<start){
     message.textContent="أدخل أرقامًا صحيحة";
@@ -116,7 +156,8 @@ function updateStatus(){
 function speedUp(){speed=Math.min(80,speed+5);updateStatus()}
 function speedDown(){speed=Math.max(5,speed-5);updateStatus()}
 
-$("loadBtn").addEventListener("click",loadRange);
+nextBtn.addEventListener("click",advance);
+backBtn.addEventListener("click",()=>{saveStep();showStep(step-1)});
 reader.addEventListener("click",()=>{
   if(setup.style.display==="none")playPause();
 });
@@ -124,8 +165,7 @@ reader.addEventListener("click",()=>{
 document.addEventListener("keydown",e=>{
   if(e.isComposing || e.defaultPrevented)return;
   if(setup.style.display!=="none"){
-    // The on-glasses composer can temporarily take focus off the page. Never
-    // interpret its keys as a request to jump to the first field.
+    const setupControls=[numberInput,...(backBtn.hidden?[]:[backBtn]),nextBtn];
     const index=setupControls.indexOf(document.activeElement);
     if(index<0 || e.target!==document.activeElement)return;
     if(e.key==="ArrowUp"||e.key==="ArrowDown"){
@@ -143,13 +183,9 @@ document.addEventListener("keydown",e=>{
   else if(e.key==="Escape")showSetup();
 });
 
-const savedRange=JSON.parse(localStorage.getItem("quran-range")||"null");
-if(savedRange){
-  $("surahInput").value=savedRange.s; $("startInput").value=savedRange.start; $("endInput").value=savedRange.end;
-}
 if(!restore()){
   verses=[{number:1,text:"اضغط تحميل لاختيار السورة والآيات"}];
   render();
 }
 updateStatus();
-setupControls[0].focus();
+showStep(0);
