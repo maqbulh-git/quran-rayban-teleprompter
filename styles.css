@@ -30,3 +30,8 @@ display:flex;align-items:center;justify-content:space-around;direction:rtl;
 background:rgba(0,0,0,.94);font-size:16px}
 #status{font-size:23px}
 #speed{font-variant-numeric:tabular-nums}
+
+#decreaseBtn,#increaseBtn{width:42px;padding:0;margin:0 3px;font-size:24px}
+#setup label{margin-left:5px}
+#setup button{padding:0 10px}
+#setup input{width:70px}

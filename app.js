@@ -8,6 +8,7 @@ const $ = id => document.getElementById(id);
 const setup = $("setup"), reader = $("reader"), versesEl = $("verses");
 const title = $("title"), counter = $("counter"), message = $("message");
 const numberInput = $("numberInput"), backBtn = $("backBtn"), nextBtn = $("nextBtn");
+const decreaseBtn = $("decreaseBtn"), increaseBtn = $("increaseBtn");
 const fields = [
   {key:"s", label:"السورة", accessible:"Surah number"},
   {key:"start", label:"من الآية", accessible:"Start verse"},
@@ -47,7 +48,7 @@ function showStep(index){
   backBtn.hidden=step===0;
   nextBtn.textContent=step===fields.length-1?"تحميل":"التالي";
   updateRangeSummary();
-  message.textContent="اكتب الرقم ثم اختر " + nextBtn.textContent;
+  message.textContent="اختر الرقم للتعديل أو استخدم − / + ثم " + nextBtn.textContent;
   numberInput.focus();
 }
 
@@ -182,9 +183,18 @@ function scrollPage(direction){
   saveCurrent();
 }
 
+function adjustNumber(delta){
+  const limit=step===0?114:verseCounts[Number(range.s)-1];
+  const current=Number(numberInput.value)||1;
+  numberInput.value=String(Math.max(1,Math.min(limit,current+delta)));
+  saveStep();
+}
+decreaseBtn.addEventListener("click",()=>adjustNumber(-1));
+increaseBtn.addEventListener("click",()=>adjustNumber(1));
 nextBtn.addEventListener("click",advance);
 backBtn.addEventListener("click",()=>{saveStep();showStep(step-1)});
 numberInput.addEventListener("input",saveStep);
+numberInput.addEventListener("change",saveStep);
 reader.addEventListener("click",()=>{
   if(setup.style.display==="none")playPause();
 });
@@ -192,7 +202,7 @@ reader.addEventListener("click",()=>{
 document.addEventListener("keydown",e=>{
   if(e.isComposing || e.defaultPrevented)return;
   if(setup.style.display!=="none"){
-    const setupControls=[numberInput,nextBtn,...(backBtn.hidden?[]:[backBtn])];
+    const setupControls=[numberInput,decreaseBtn,increaseBtn,nextBtn,...(backBtn.hidden?[]:[backBtn])];
     const index=setupControls.indexOf(document.activeElement);
     if(index<0 || e.target!==document.activeElement)return;
     if(e.key==="ArrowUp"||e.key==="ArrowDown"){

@@ -22,3 +22,5 @@ Controls:
 Important: the first time you load a new passage, the glasses need internet access. Previously loaded passages are cached locally.
 
 Source: Al Quran Cloud REST API. Its current terms say the Arabic Quran text may be reproduced/displayed for non-commercial use and request preservation of the Uthmani orthography.
+
+If the glasses do not open dictation or handwriting, use the − / + buttons to change the current number. Up/Down moves between the number field, −, +, Next, and Back. Select activates the highlighted control.
