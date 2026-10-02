@@ -4,7 +4,7 @@ This version no longer hard-codes a small list of verses.
 
 On the glasses, enter the Surah number (1–114), select **التالي**, enter the Start verse, select **التالي**, enter the End verse, then select **تحميل**. The same text field is used for all three steps so the glasses' dictation or handwriting composer has one target. The app fetches the Uthmani Quran text from Al Quran Cloud and caches the selected passage locally.
 
-After confirming the Surah, Start defaults to **1** and End defaults to **that Surah's last verse**. You can edit either before loading. Confirming a Surah again resets both defaults; moving between the verse steps preserves your edits.
+After confirming the Surah, Start defaults to **1** and End defaults to **that Surah's last verse**. You can edit either before loading. Chapter selection uses built-in verse counts and never waits for a network request or disables the number field. Confirming a Surah again resets both defaults; moving between the verse steps preserves your edits.
 
 Examples:
 - Surah 17, 1–40
