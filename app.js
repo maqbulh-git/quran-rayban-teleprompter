@@ -193,6 +193,7 @@ decreaseBtn.addEventListener("click",()=>adjustNumber(-1));
 increaseBtn.addEventListener("click",()=>adjustNumber(1));
 nextBtn.addEventListener("click",advance);
 backBtn.addEventListener("click",()=>{saveStep();showStep(step-1)});
+$("testInputBtn").addEventListener("click",()=>{window.location.href="input-test.html"});
 numberInput.addEventListener("input",saveStep);
 numberInput.addEventListener("change",saveStep);
 reader.addEventListener("click",()=>{
@@ -202,7 +203,7 @@ reader.addEventListener("click",()=>{
 document.addEventListener("keydown",e=>{
   if(e.isComposing || e.defaultPrevented)return;
   if(setup.style.display!=="none"){
-    const setupControls=[numberInput,decreaseBtn,increaseBtn,nextBtn,...(backBtn.hidden?[]:[backBtn])];
+    const setupControls=[numberInput,decreaseBtn,increaseBtn,nextBtn,...(backBtn.hidden?[]:[backBtn]),$("testInputBtn")];
     const index=setupControls.indexOf(document.activeElement);
     if(index<0 || e.target!==document.activeElement)return;
     if(e.key==="ArrowUp"||e.key==="ArrowDown"){

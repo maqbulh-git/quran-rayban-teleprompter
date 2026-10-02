@@ -35,3 +35,6 @@ background:rgba(0,0,0,.94);font-size:16px}
 #setup label{margin-left:5px}
 #setup button{padding:0 10px}
 #setup input{width:70px}
+
+#testInputBtn{position:absolute;left:16px;bottom:8px;height:30px;font-size:14px}
+#message{max-width:360px}
