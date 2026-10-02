@@ -15,7 +15,8 @@ Examples:
 Controls:
 - On the selection screen, select the number field to dictate or write its value. Swipe down to **التالي** and select it to move to the next step. **السابق** returns to the prior step. On the last step, select **تحميل** to load the passage.
 - Enter/Space: play/pause
-- Up/Down: change speed
+- Up/Down: scroll backward/forward by three quarters of a page, with overlap for reading. Manual scrolling pauses autoplay; Enter/Select resumes from that position.
+- Left/Right: decrease/increase autoplay speed
 - Escape: restart/show selector
 
 Important: the first time you load a new passage, the glasses need internet access. Previously loaded passages are cached locally.

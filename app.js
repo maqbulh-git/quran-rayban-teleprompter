@@ -187,6 +187,12 @@ function updateStatus(){
 }
 function speedUp(){speed=Math.min(80,speed+5);updateStatus()}
 function speedDown(){speed=Math.max(5,speed-5);updateStatus()}
+function scrollPage(direction){
+  stop();
+  scrollY=Math.max(0,Math.min(maxScroll(),scrollY+direction*reader.clientHeight*0.75));
+  versesEl.style.transform=`translate3d(0,${-scrollY}px,0)`;
+  saveCurrent();
+}
 
 nextBtn.addEventListener("click",advance);
 backBtn.addEventListener("click",()=>{saveStep();showStep(step-1)});
@@ -209,10 +215,12 @@ document.addEventListener("keydown",e=>{
     // Leave left/right for the text cursor and Select for the input composer.
     return;
   }
-  if(["Enter"," ","ArrowUp","ArrowDown","Escape"].includes(e.key))e.preventDefault();
+  if(["Enter"," ","ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Escape"].includes(e.key))e.preventDefault();
   if(e.key==="Enter"||e.key===" ")playPause();
-  else if(e.key==="ArrowUp")speedUp();
-  else if(e.key==="ArrowDown")speedDown();
+  else if(e.key==="ArrowUp")scrollPage(-1);
+  else if(e.key==="ArrowDown")scrollPage(1);
+  else if(e.key==="ArrowRight")speedUp();
+  else if(e.key==="ArrowLeft")speedDown();
   else if(e.key==="Escape")showSetup();
 });
 
