@@ -19,6 +19,18 @@ try{
   if(saved)for(const field of fields)if(saved[field.key]!=null)range[field.key]=String(saved[field.key]);
 }catch(e){}
 let step=0;
+const chapters=new Map();
+let selectingChapter=false;
+
+async function getChapter(s){
+  if(chapters.has(s))return chapters.get(s);
+  const res=await fetch(`${API}/${s}/quran-uthmani`,{cache:"force-cache"});
+  if(!res.ok)throw new Error("HTTP "+res.status);
+  const data=(await res.json()).data;
+  if(!Array.isArray(data?.ayahs)||!data.ayahs.length)throw new Error("chapter");
+  chapters.set(s,data);
+  return data;
+}
 
 function updateRangeSummary(){
   $("rangeSummary").textContent=`السورة ${range.s} · من ${range.start} · إلى ${range.end}`;
@@ -43,7 +55,8 @@ function saveStep(){
   updateRangeSummary();
 }
 
-function advance(){
+async function advance(){
+  if(selectingChapter)return;
   saveStep();
   const n=Number(range[fields[step].key]);
   if(!Number.isInteger(n)||n<1||(step===0&&n>114)||(step===2&&n<Number(range.start))){
@@ -51,8 +64,24 @@ function advance(){
     numberInput.focus();
     return;
   }
-  if(step<fields.length-1)showStep(step+1);
-  else loadRange();
+  if(step===0){
+    selectingChapter=true;
+    numberInput.disabled=nextBtn.disabled=true;
+    message.textContent="جارٍ التحميل…";
+    try{
+      const chapter=await getChapter(n);
+      range.start="1";
+      range.end=String(chapter.ayahs[chapter.ayahs.length-1].numberInSurah);
+      numberInput.disabled=nextBtn.disabled=false;
+      showStep(1);
+    }catch(e){
+      message.textContent="تعذر التحميل. تأكد من اتصال النظارة بالإنترنت ثم اختر التالي.";
+    }finally{
+      selectingChapter=false;
+      numberInput.disabled=nextBtn.disabled=false;
+    }
+  }else if(step<fields.length-1)showStep(step+1);
+  else await loadRange();
 }
 
 function showSetup(){
@@ -114,14 +143,12 @@ async function loadRange(){
   }
   message.textContent="جارٍ التحميل…";
   try{
-    const res=await fetch(`${API}/${s}/quran-uthmani`,{cache:"force-cache"});
-    if(!res.ok) throw new Error("HTTP "+res.status);
-    const data=await res.json();
-    const all=data.data.ayahs||[];
+    const data=await getChapter(s);
+    const all=data.ayahs;
     const selected=all.filter(v=>v.numberInSurah>=start && v.numberInSurah<=end);
     if(!selected.length) throw new Error("range");
     verses=selected.map(v=>({number:v.numberInSurah,text:v.text}));
-    title.textContent=data.data.name || `سورة ${s}`;
+    title.textContent=data.name || `سورة ${s}`;
     localStorage.setItem("quran-range",JSON.stringify({s,start,end}));
     saveCurrent(); render();
     message.textContent="تم التحميل — اضغط Enter للتشغيل";
