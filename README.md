@@ -1,26 +1,14 @@
-# Quran Teleprompter V2
+# Quran Teleprompter
 
-This version no longer hard-codes a small list of verses.
+Three permanent fields select Surah, From verse, and To verse. Select each field to write or dictate, or use its − / + buttons. Changing the Surah resets From to 1 and To to the final verse. Choose تحميل to load.
 
-On the glasses, enter the Surah number (1–114), select **التالي**, enter the Start verse, select **التالي**, enter the End verse, then select **تحميل**. The same text field is used for all three steps so the glasses' dictation or handwriting composer has one target. The app fetches the Uthmani Quran text from Al Quran Cloud and caches the selected passage locally.
-
-After confirming the Surah, Start defaults to **1** and End defaults to **that Surah's last verse**. You can edit either before loading. Chapter selection uses built-in verse counts and never waits for a network request or disables the number field. Confirming a Surah again resets both defaults; moving between the verse steps preserves your edits.
-
-Examples:
-- Surah 17, 1–40
-- Surah 16, 108–128
-- Surah 2, 255–286
-- Surah 36, 1–12
+Each input retains its own identity and value. Editing From or To does not change Surah or move focus. Chapter defaults update only on a committed Surah change.
 
 Controls:
-- On the selection screen, select the number field to dictate or write its value. Swipe down to **التالي** and select it to move to the next step. **السابق** returns to the prior step. On the last step, select **تحميل** to load the passage.
-- Enter/Space: play/pause
-- Up/Down: scroll backward/forward by three quarters of a page, with overlap for reading. Manual scrolling pauses autoplay; Enter/Select resumes from that position.
-- Left/Right: decrease/increase autoplay speed
-- Escape: restart/show selector
+- Setup Up/Down: move through each field, its − / + buttons, and Load.
+- Reader Up/Down: scroll three quarters of a page and pause autoplay.
+- Reader Left/Right: decrease/increase autoplay speed.
+- Select/Enter: activate a control or play/pause the reader.
+- Escape from reader: return to selection.
 
-Important: the first time you load a new passage, the glasses need internet access. Previously loaded passages are cached locally.
-
-Source: Al Quran Cloud REST API. Its current terms say the Arabic Quran text may be reproduced/displayed for non-commercial use and request preservation of the Uthmani orthography.
-
-If the glasses do not open dictation or handwriting, use the − / + buttons to change the current number. Up/Down moves between the number field, −, +, Next, and Back. Select activates the highlighted control.
+Arabic text and chapter verse counts: Al Quran Cloud. Loading new text requires internet access. Previously loaded passages are saved locally.

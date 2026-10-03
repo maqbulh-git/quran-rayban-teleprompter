@@ -17,16 +17,28 @@
   </header>
 
   <section id="setup">
-    <div class="setupTitle">اختيار الآيات <span id="stepCount">١/٣</span></div>
-    <label id="fieldLabel" for="numberInput">السورة</label>
-    <button id="decreaseBtn" type="button" aria-label="Decrease number">−</button>
-    <input id="numberInput" type="text" inputmode="text" autocomplete="off" value="17" aria-label="Surah number">
-    <button id="increaseBtn" type="button" aria-label="Increase number">+</button>
-    <button id="nextBtn" type="button">التالي</button>
-    <button id="backBtn" type="button" hidden>السابق</button>
-    <div id="rangeSummary">السورة 17 · من 1 · إلى 40</div>
-    <button id="testInputBtn" type="button">اختبار الكتابة</button>
-    <div id="message">اكتب الرقم ثم اختر التالي</div>
+    <div class="setupTitle">اختيار السورة والآيات</div>
+    <div class="fieldRow">
+      <label for="surahInput">السورة</label>
+      <input id="surahInput" inputmode="numeric" value="17" aria-label="Surah number">
+      <button id="surahMinus" type="button" aria-label="Decrease Surah number">−</button>
+      <button id="surahPlus" type="button" aria-label="Increase Surah number">+</button>
+    </div>
+    <div class="fieldRow">
+      <label for="startInput">من الآية</label>
+      <input id="startInput" inputmode="numeric" value="1" aria-label="Start verse">
+      <button id="startMinus" type="button" aria-label="Decrease Start verse">−</button>
+      <button id="startPlus" type="button" aria-label="Increase Start verse">+</button>
+    </div>
+    <div class="fieldRow">
+      <label for="endInput">إلى الآية</label>
+      <input id="endInput" inputmode="numeric" value="111" aria-label="End verse">
+      <button id="endMinus" type="button" aria-label="Decrease End verse">−</button>
+      <button id="endPlus" type="button" aria-label="Increase End verse">+</button>
+    </div>
+    <button id="loadBtn" type="button">تحميل</button>
+    <div id="rangeSummary"></div>
+    <div id="message">اختر الحقل للكتابة أو استخدم − / + ثم تحميل</div>
   </section>
 
   <section id="reader" tabindex="0">
