@@ -48,8 +48,8 @@ function showStep(index){
   backBtn.hidden=step===0;
   nextBtn.textContent=step===fields.length-1?"تحميل":"التالي";
   updateRangeSummary();
-  message.textContent="اختر الرقم للتعديل أو استخدم − / + ثم " + nextBtn.textContent;
-  numberInput.focus();
+  message.textContent="استخدم − / + ثم " + nextBtn.textContent;
+  decreaseBtn.focus();
 }
 
 function saveStep(){
@@ -62,7 +62,7 @@ async function advance(){
   const n=Number(range[fields[step].key]);
   if(!Number.isInteger(n)||n<1||(step===0&&n>114)||(step===2&&n<Number(range.start))){
     message.textContent="أدخل رقمًا صحيحًا";
-    numberInput.focus();
+    decreaseBtn.focus();
     return;
   }
   if(step===0){
@@ -203,7 +203,7 @@ reader.addEventListener("click",()=>{
 document.addEventListener("keydown",e=>{
   if(e.isComposing || e.defaultPrevented)return;
   if(setup.style.display!=="none"){
-    const setupControls=[numberInput,decreaseBtn,increaseBtn,nextBtn,...(backBtn.hidden?[]:[backBtn]),$("testInputBtn")];
+    const setupControls=[decreaseBtn,increaseBtn,nextBtn,...(backBtn.hidden?[]:[backBtn]),$("testInputBtn")];
     const index=setupControls.indexOf(document.activeElement);
     if(index<0 || e.target!==document.activeElement)return;
     if(e.key==="ArrowUp"||e.key==="ArrowDown"){
@@ -211,7 +211,7 @@ document.addEventListener("keydown",e=>{
       const next=index+(e.key==="ArrowDown" ? 1 : -1);
       setupControls[Math.max(0,Math.min(setupControls.length-1,next))].focus();
     }
-    // Leave left/right for the text cursor and Select for the input composer.
+    // Let Select activate the focused button.
     return;
   }
   if(["Enter"," ","ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Escape"].includes(e.key))e.preventDefault();
