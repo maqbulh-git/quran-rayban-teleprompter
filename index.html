@@ -16,13 +16,12 @@
   </header>
 
   <section id="setup">
-    <div class="setupTitle">اختيار الآيات <span id="stepCount">١/٣</span></div>
-    <label id="fieldLabel" for="numberInput">السورة</label>
-    <input id="numberInput" inputmode="numeric" value="17" aria-label="Surah number">
-    <button id="nextBtn" type="button">التالي</button>
-    <button id="backBtn" type="button" hidden>السابق</button>
-    <div id="rangeSummary">السورة 17 · من 1 · إلى 40</div>
-    <div id="message">اكتب الرقم ثم اختر التالي</div>
+    <div class="setupTitle">اختيار الآيات</div>
+    <label>السورة: <input id="surahInput" inputmode="numeric" value="17" aria-label="Surah number"></label>
+    <label>من: <input id="startInput" inputmode="numeric" value="1" aria-label="Start verse"></label>
+    <label>إلى: <input id="endInput" inputmode="numeric" value="40" aria-label="End verse"></label>
+    <button id="loadBtn">تحميل</button>
+    <div id="message">اكتب رقم السورة والآيات ثم اضغط تحميل</div>
   </section>
 
   <section id="reader" tabindex="0">
