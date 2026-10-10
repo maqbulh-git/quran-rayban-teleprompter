@@ -24,3 +24,9 @@ Important: the first time you load a new passage, the glasses need internet acce
 Source: Al Quran Cloud REST API. Its current terms say the Arabic Quran text may be reproduced/displayed for non-commercial use and request preservation of the Uthmani orthography.
 
 If the glasses do not open dictation or handwriting, use the − / + buttons to change the current number. Up/Down moves between the number field, −, +, Next, and Back. Select activates the highlighted control.
+
+## Meta AI / WebMCP
+
+When `document.modelContext` is available, the app registers `open_quran_passage` at startup. Open the Quran app on the glasses first, then say: “Hey Meta, open Surah 16, verses 106 to 128.” You can also ask for “Surah 16, verse 106 to the end” or an entire Surah. `surah` is required; `fromVerse` defaults to 1 and `toVerse` defaults to the final verse. Invalid ranges and network failures return short explanations to Meta AI. Cancellation is forwarded to the Quran API request. The passage opens paused, ready to read.
+
+The number field stays disabled and outside focus navigation; use − / + and Next for manual selection. WebMCP is optional and does not change the manual controls. Tool registration and mock tests do not prove Meta AI discovery on the glasses; test the spoken request on the device after reopening the app.

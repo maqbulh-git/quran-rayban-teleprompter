@@ -24,9 +24,10 @@ const chapters=new Map();
 // Verse counts from Al Quran Cloud, indexed by Surah number minus one.
 const verseCounts=[7, 286, 200, 176, 120, 165, 206, 75, 129, 109, 123, 111, 43, 52, 99, 128, 111, 110, 98, 135, 112, 78, 118, 64, 77, 227, 93, 88, 69, 60, 34, 30, 73, 54, 45, 83, 182, 88, 75, 85, 54, 53, 89, 59, 37, 35, 38, 29, 18, 45, 60, 49, 62, 55, 78, 96, 29, 22, 24, 13, 14, 11, 11, 18, 12, 12, 30, 52, 52, 44, 28, 28, 20, 56, 40, 31, 50, 40, 46, 42, 29, 19, 36, 25, 22, 17, 19, 26, 30, 20, 15, 21, 11, 8, 8, 19, 5, 8, 8, 11, 11, 8, 3, 9, 5, 4, 7, 3, 6, 3, 5, 4, 5, 6];
 
-async function getChapter(s){
+async function getChapter(s, signal){
+  signal?.throwIfAborted();
   if(chapters.has(s))return chapters.get(s);
-  const res=await fetch(`${API}/${s}/quran-uthmani`,{cache:"force-cache"});
+  const res=await fetch(`${API}/${s}/quran-uthmani`,{cache:"force-cache",signal});
   if(!res.ok)throw new Error("HTTP "+res.status);
   const data=(await res.json()).data;
   if(!Array.isArray(data?.ayahs)||!data.ayahs.length)throw new Error("chapter");
@@ -122,29 +123,72 @@ function escapeHtml(s){
   '"':"&quot;","'":"&#39;"}[c]));
 }
 
-async function loadRange(){
-  stop();
-  const s=Number(range.s), start=Number(range.start), end=Number(range.end);
+let passageRequest=0;
+async function loadRange(selection=range, {signal}={}){
+  const s=Number(selection.s), start=Number(selection.start), end=Number(selection.end);
   if(!Number.isInteger(s)||s<1||s>114||!Number.isInteger(start)||start<1||
-     !Number.isInteger(end)||end<start){
-    message.textContent="أدخل أرقامًا صحيحة";
-    return;
+     !Number.isInteger(end)||end<start||end>verseCounts[s-1]){
+    const error="Choose a Surah from 1 to 114 and a valid verse range within that Surah.";
+    message.textContent="أدخل أرقامًا صحيحة ضمن السورة";
+    return {ok:false,error};
   }
+  const request=++passageRequest;
+  stop();
   message.textContent="جارٍ التحميل…";
   try{
-    const data=await getChapter(s);
-    const all=data.ayahs;
-    const selected=all.filter(v=>v.numberInSurah>=start && v.numberInSurah<=end);
-    if(!selected.length) throw new Error("range");
+    const data=await getChapter(s,signal);
+    signal?.throwIfAborted();
+    if(request!==passageRequest)return {ok:false,error:"A newer passage request replaced this one."};
+    const selected=data.ayahs.filter(v=>v.numberInSurah>=start && v.numberInSurah<=end);
+    if(selected.length!==end-start+1)throw new Error("range");
     verses=selected.map(v=>({number:v.numberInSurah,text:v.text}));
     title.textContent=data.name || `سورة ${s}`;
+    Object.assign(range,{s:String(s),start:String(start),end:String(end)});
+    numberInput.value=range[fields[step].key];
+    updateRangeSummary();
     localStorage.setItem("quran-range",JSON.stringify({s,start,end}));
-    saveCurrent(); render();
+    render(); saveCurrent();
     message.textContent="تم التحميل — اضغط Enter للتشغيل";
     setup.style.display="none";
     reader.focus();
+    return {ok:true,s,start,end};
   }catch(e){
-    message.textContent="تعذر التحميل. تأكد من اتصال النظارة بالإنترنت.";
+    const cancelled=signal?.aborted || e.name==="AbortError";
+    if(request===passageRequest)message.textContent=cancelled?"تم إلغاء التحميل":"تعذر التحميل. تأكد من اتصال النظارة بالإنترنت.";
+    return {ok:false,error:cancelled?"Opening the passage was cancelled.":"Could not load the passage. Check the glasses' internet connection and try again."};
+  }
+}
+
+async function registerQuranTool(){
+  const context=document.modelContext;
+  if(typeof context?.registerTool!=="function")return;
+  try{
+    await context.registerTool({
+      name:"open_quran_passage",
+      description:"Open and display Arabic Quran verses in this Quran teleprompter. Use for requests to open a Surah/chapter and an ayah/verse range, such as Surah An-Nahl (16) verses 106 to 128, or Surah Yasin (36). Convert Surah names to their chapter numbers. Omit fromVerse for verse 1 and omit toVerse to read through the end of the Surah. This displays the passage without starting automatic scrolling.",
+      inputSchema:{
+        type:"object",
+        properties:{
+          surah:{type:"integer",minimum:1,maximum:114,description:"Quran Surah/chapter number, 1 to 114."},
+          fromVerse:{type:"integer",minimum:1,description:"First ayah/verse to display, inclusive. Defaults to 1."},
+          toVerse:{type:"integer",minimum:1,description:"Last ayah/verse to display, inclusive. Omit for the end of the Surah. For one verse, use the same number as fromVerse."}
+        },
+        required:["surah"],
+        additionalProperties:false
+      },
+      async execute(input, {signal}={}){
+        if(!input || !Number.isInteger(input.surah)||input.surah<1||input.surah>114 ||
+           (input.fromVerse!==undefined&&!Number.isInteger(input.fromVerse)) ||
+           (input.toVerse!==undefined&&!Number.isInteger(input.toVerse))){
+          return {isError:true,content:[{type:"text",text:"Specify a Surah number from 1 to 114 and whole verse numbers."}]};
+        }
+        const result=await loadRange({s:input.surah,start:input.fromVerse??1,end:input.toVerse??verseCounts[input.surah-1]},{signal});
+        return {isError:!result.ok,content:[{type:"text",text:result.ok?
+          `Opened Surah ${result.s}, verses ${result.start} to ${result.end}.`:result.error}]};
+      }
+    });
+  }catch(e){
+    console.warn("Quran WebMCP tool could not be registered:",e);
   }
 }
 
@@ -229,3 +273,5 @@ if(!restore()){
 }
 updateStatus();
 showStep(0);
+
+registerQuranTool();
