@@ -31,3 +31,5 @@ If the glasses do not open dictation or handwriting, use the − / + buttons to 
 When `document.modelContext` is available, the app registers `open_quran_passage` at startup. Open the Quran app on the glasses first, then say: “Hey Meta, open Surah 16, verses 106 to 128.” You can also ask for “Surah 16, verse 106 to the end” or an entire Surah. `surah` is required; `fromVerse` defaults to 1 and `toVerse` defaults to the final verse. Invalid ranges and network failures return short explanations to Meta AI. Cancellation is forwarded to the Quran API request. The passage opens paused, ready to read.
 
 The number field stays disabled and outside focus navigation; use − / + and Next for manual selection. WebMCP is optional and does not change the manual controls. Tool registration and mock tests do not prove Meta AI discovery on the glasses; test the spoken request on the device after reopening the app.
+
+Hold-and-move speed input is temporarily disabled: global touch-action opt-in interfered with button activation on the glasses. Normal activation is restored. Surah swipes are limited to one change per 900 ms and cannot queue while a chapter loads.
