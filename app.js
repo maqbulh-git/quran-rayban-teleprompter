@@ -75,6 +75,7 @@ async function advance(){
 }
 
 function showSetup(){
+  endSpeedDrag();
   restart();
   setup.style.display="block";
   showStep(0);
@@ -133,6 +134,7 @@ async function loadRange(selection=range, {signal}={}){
     return {ok:false,error};
   }
   const request=++passageRequest;
+  endSpeedDrag();
   stop();
   message.textContent="جارٍ التحميل…";
   try{
@@ -227,6 +229,49 @@ function scrollPage(direction){
   saveCurrent();
 }
 
+let pendingSurah=null;
+async function moveSurah(direction){
+  const s=Number(pendingSurah??range.s)+direction;
+  if(s<1||s>114)return;
+  pendingSurah=s;
+  try{
+    await loadRange({s,start:1,end:verseCounts[s-1]});
+  }finally{
+    if(pendingSurah===s)pendingSurah=null;
+  }
+}
+
+// Hold-and-move is delivered as pointer events after body touch-action opt-in.
+let speedDrag=null, suppressDragClick=false;
+function endSpeedDrag(){
+  const drag=speedDrag;
+  speedDrag=null;
+  if(drag && reader.hasPointerCapture?.(drag.id))reader.releasePointerCapture(drag.id);
+}
+document.addEventListener("pointerdown",e=>{
+  if(!Number.isFinite(e.clientX) || setup.style.display!=="none" || e.isPrimary===false || (e.button!==undefined&&e.button!==0))return;
+  suppressDragClick=false;
+  speedDrag={id:e.pointerId,x:e.clientX,speed};
+  reader.setPointerCapture(e.pointerId);
+});
+document.addEventListener("pointermove",e=>{
+  if(!speedDrag||e.pointerId!==speedDrag.id||!Number.isFinite(e.clientX))return;
+  const steps=Math.trunc((e.clientX-speedDrag.x)/25);
+  if(steps!==0)suppressDragClick=true;
+  const next=Math.max(5,Math.min(80,speedDrag.speed+steps*5));
+  if(next!==speed){speed=next;updateStatus();}
+});
+document.addEventListener("pointerup",e=>{
+  if(speedDrag?.id===e.pointerId)endSpeedDrag();
+});
+document.addEventListener("pointercancel",e=>{
+  if(speedDrag?.id===e.pointerId){endSpeedDrag();suppressDragClick=false;}
+});
+reader.addEventListener("lostpointercapture",endSpeedDrag);
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden){endSpeedDrag();suppressDragClick=false;}
+});
+
 function adjustNumber(delta){
   const limit=step===0?114:verseCounts[Number(range.s)-1];
   const current=Number(numberInput.value)||1;
@@ -241,6 +286,7 @@ $("testInputBtn").addEventListener("click",()=>{window.location.href="input-test
 numberInput.addEventListener("input",saveStep);
 numberInput.addEventListener("change",saveStep);
 reader.addEventListener("click",()=>{
+  if(suppressDragClick){suppressDragClick=false;return;}
   if(setup.style.display==="none")playPause();
 });
 
@@ -259,11 +305,12 @@ document.addEventListener("keydown",e=>{
     return;
   }
   if(["Enter"," ","ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Escape"].includes(e.key))e.preventDefault();
-  if(e.key==="Enter"||e.key===" ")playPause();
+  if(speedDrag)return;
+  if(e.key==="Enter"||e.key===" "){suppressDragClick=false;playPause();}
   else if(e.key==="ArrowUp")scrollPage(-1);
   else if(e.key==="ArrowDown")scrollPage(1);
-  else if(e.key==="ArrowRight")speedUp();
-  else if(e.key==="ArrowLeft")speedDown();
+  else if(e.key==="ArrowRight"&&!e.repeat)moveSurah(1);
+  else if(e.key==="ArrowLeft"&&!e.repeat)moveSurah(-1);
   else if(e.key==="Escape")showSetup();
 });
 

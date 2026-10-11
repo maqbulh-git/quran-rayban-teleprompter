@@ -16,7 +16,8 @@ Controls:
 - On the selection screen, select the number field to dictate or write its value. Swipe down to **التالي** and select it to move to the next step. **السابق** returns to the prior step. On the last step, select **تحميل** to load the passage.
 - Enter/Space: play/pause
 - Up/Down: scroll backward/forward by three quarters of a page, with overlap for reading. Manual scrolling pauses autoplay; Enter/Select resumes from that position.
-- Left/Right: decrease/increase autoplay speed
+- Left/Right without holding: previous/next Surah, loaded in full and paused. Stops at Surah 1 and 114.
+- Hold and move right/left: increase/decrease autoplay speed (5–80). Every 25 pointer-coordinate units changes speed by 5. Requires Neural Band continuous drag; the direction and sensitivity need verification on real glasses. Initial body CSS opts in with `touch-action: none`.
 - Escape: restart/show selector
 
 Important: the first time you load a new passage, the glasses need internet access. Previously loaded passages are cached locally.
