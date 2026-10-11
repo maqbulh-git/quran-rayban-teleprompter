@@ -1,7 +1,7 @@
 *{box-sizing:border-box}
 html,body{width:600px;height:600px;margin:0;overflow:hidden;background:#000;color:#fff;
 font-family:"Noto Naskh Arabic","Noto Sans Arabic","Geeza Pro","Arial",sans-serif}
-body{direction:rtl;touch-action:none}
+body{direction:rtl}
 #app{width:600px;height:600px;position:relative;background:#000}
 #topbar{position:absolute;top:0;left:0;right:0;height:54px;z-index:5;
 display:flex;justify-content:space-between;align-items:center;padding:0 24px;

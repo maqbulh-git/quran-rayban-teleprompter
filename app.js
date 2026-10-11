@@ -1,4 +1,5 @@
 
+const readerPage = window.location.pathname.endsWith("/reader.html");
 const API = "https://api.alquran.cloud/v1/surah";
 let verses = [];
 let playing = false, raf = null, lastTime = 0, scrollY = 0;
@@ -78,6 +79,7 @@ function showSetup(){
   endSpeedDrag();
   suppressReaderClickUntil=0;
   restart();
+  if(readerPage){window.location.href="index.html";return;}
   setup.style.display="block";
   showStep(0);
 }
@@ -155,6 +157,9 @@ async function loadRange(selection=range, {signal}={}){
     message.textContent="تم التحميل — اضغط Enter للتشغيل";
     setup.style.display="none";
     reader.focus();
+    // Navigation reloads the host input mode; CSS changes cannot do this at runtime.
+    // Defer until the current activation/WebMCP result can finish.
+    if(!readerPage)setTimeout(()=>{window.location.href="reader.html";},300);
     return {ok:true,s,start,end};
   }catch(e){
     const cancelled=signal?.aborted || e.name==="AbortError";
@@ -327,11 +332,15 @@ document.addEventListener("keydown",e=>{
   else if(e.key==="Escape")showSetup();
 });
 
-if(!restore()){
+const restored=restore();
+if(!restored){
   verses=[{number:1,text:"اضغط تحميل لاختيار السورة والآيات"}];
   render();
 }
 updateStatus();
-showStep(0);
+if(readerPage){
+  if(restored){setup.style.display="none";reader.focus();}
+  else window.location.replace("index.html");
+}else showStep(0);
 
 registerQuranTool();

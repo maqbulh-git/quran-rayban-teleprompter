@@ -33,3 +33,5 @@ When `document.modelContext` is available, the app registers `open_quran_passage
 The number field stays disabled and outside focus navigation; use − / + and Next for manual selection. WebMCP is optional and does not change the manual controls. Tool registration and mock tests do not prove Meta AI discovery on the glasses; test the spoken request on the device after reopening the app.
 
 Hold-and-move speed input is confined to the reader while the selector is hidden. Selection buttons handle Enter/Space explicitly and do not use drag capture. Repeated Surah swipes are limited to one change per 900 ms and cannot queue during loading. A speed drag suppresses only its immediate pointer click; keyboard activation remains available. Verify all input paths on the glasses.
+
+The manual selector at index.html has no continuous-drag opt-in. Loading a passage navigates to reader.html, which opts into continuous drag in its initial CSS and restores the saved passage paused. Escape returns to index.html with a full navigation to reset the host input mode. Both pages register the same WebMCP passage tool. The app URL and selector layout remain the same.
