@@ -75,6 +75,8 @@ async function advance(){
 }
 
 function showSetup(){
+  endSpeedDrag();
+  suppressReaderClickUntil=0;
   restart();
   setup.style.display="block";
   showStep(0);
@@ -132,6 +134,8 @@ async function loadRange(selection=range, {signal}={}){
     message.textContent="أدخل أرقامًا صحيحة ضمن السورة";
     return {ok:false,error};
   }
+  endSpeedDrag();
+  suppressReaderClickUntil=0;
   const request=++passageRequest;
   stop();
   message.textContent="جارٍ التحميل…";
@@ -243,6 +247,38 @@ async function moveSurah(direction){
   }
 }
 
+// Drag belongs only to the reader; it never captures selection controls.
+let speedDrag=null, suppressReaderClickUntil=0;
+function endSpeedDrag(){
+  const drag=speedDrag;
+  speedDrag=null;
+  if(drag && reader.hasPointerCapture?.(drag.id))reader.releasePointerCapture(drag.id);
+}
+reader.addEventListener("pointerdown",e=>{
+  if(setup.style.display!=="none" || e.isPrimary===false ||
+     (e.button!==undefined&&e.button!==0) || !Number.isFinite(e.clientX))return;
+  suppressReaderClickUntil=0;
+  speedDrag={id:e.pointerId,x:e.clientX,speed,moved:false};
+  reader.setPointerCapture(e.pointerId);
+});
+reader.addEventListener("pointermove",e=>{
+  if(!speedDrag || e.pointerId!==speedDrag.id || !Number.isFinite(e.clientX))return;
+  const steps=Math.trunc((e.clientX-speedDrag.x)/25);
+  if(steps!==0)speedDrag.moved=true;
+  const next=Math.max(5,Math.min(80,speedDrag.speed+steps*5));
+  if(next!==speed){speed=next;updateStatus();}
+});
+reader.addEventListener("pointerup",e=>{
+  if(speedDrag?.id!==e.pointerId)return;
+  if(speedDrag.moved)suppressReaderClickUntil=performance.now()+500;
+  endSpeedDrag();
+});
+reader.addEventListener("pointercancel",()=>{endSpeedDrag();suppressReaderClickUntil=0;});
+reader.addEventListener("lostpointercapture",endSpeedDrag);
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden){endSpeedDrag();suppressReaderClickUntil=0;}
+});
+
 function adjustNumber(delta){
   const limit=step===0?114:verseCounts[Number(range.s)-1];
   const current=Number(numberInput.value)||1;
@@ -256,7 +292,8 @@ backBtn.addEventListener("click",()=>{saveStep();showStep(step-1)});
 $("testInputBtn").addEventListener("click",()=>{window.location.href="input-test.html"});
 numberInput.addEventListener("input",saveStep);
 numberInput.addEventListener("change",saveStep);
-reader.addEventListener("click",()=>{
+reader.addEventListener("click",e=>{
+  if(e.detail!==0 && performance.now()<suppressReaderClickUntil){suppressReaderClickUntil=0;return;}
   if(setup.style.display==="none")playPause();
 });
 
@@ -271,11 +308,18 @@ document.addEventListener("keydown",e=>{
       const next=index+(e.key==="ArrowDown" ? 1 : -1);
       setupControls[Math.max(0,Math.min(setupControls.length-1,next))].focus();
     }
-    // Let Select activate the focused button.
+    if(e.key==="Enter" || e.key===" "){
+      e.preventDefault();
+      if(!e.repeat)document.activeElement.click();
+    }
+    // Handle activation explicitly: the glasses deliver Enter to focused controls.
     return;
   }
   if(["Enter"," ","ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Escape"].includes(e.key))e.preventDefault();
-  if(e.key==="Enter"||e.key===" "){playPause();}
+  if((e.key==="ArrowLeft"||e.key==="ArrowRight") && speedDrag?.moved)return;
+  if(e.key==="Enter"||e.key===" "){
+    if(!e.repeat){endSpeedDrag();suppressReaderClickUntil=0;playPause();}
+  }
   else if(e.key==="ArrowUp")scrollPage(-1);
   else if(e.key==="ArrowDown")scrollPage(1);
   else if(e.key==="ArrowRight"&&!e.repeat)moveSurah(1);

@@ -32,4 +32,4 @@ When `document.modelContext` is available, the app registers `open_quran_passage
 
 The number field stays disabled and outside focus navigation; use − / + and Next for manual selection. WebMCP is optional and does not change the manual controls. Tool registration and mock tests do not prove Meta AI discovery on the glasses; test the spoken request on the device after reopening the app.
 
-Hold-and-move speed input is temporarily disabled: global touch-action opt-in interfered with button activation on the glasses. Normal activation is restored. Surah swipes are limited to one change per 900 ms and cannot queue while a chapter loads.
+Hold-and-move speed input is confined to the reader while the selector is hidden. Selection buttons handle Enter/Space explicitly and do not use drag capture. Repeated Surah swipes are limited to one change per 900 ms and cannot queue during loading. A speed drag suppresses only its immediate pointer click; keyboard activation remains available. Verify all input paths on the glasses.
