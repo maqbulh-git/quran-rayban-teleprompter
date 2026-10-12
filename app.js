@@ -2,6 +2,7 @@
 const readerPage = window.location.pathname.endsWith("/reader.html");
 const API = "https://api.alquran.cloud/v1/surah";
 let verses = [];
+let currentSurah=null;
 let playing = false, raf = null, lastTime = 0, scrollY = 0;
 let speed = Number(localStorage.getItem("quran-speed") || 25);
 
@@ -150,6 +151,7 @@ async function loadRange(selection=range, {signal}={}){
     if(selected.length!==end-start+1)throw new Error("range");
     verses=selected.map(v=>({number:v.numberInSurah,text:v.text}));
     title.textContent=data.name || `سورة ${s}`;
+    currentSurah=s;
     Object.assign(range,{s:String(s),start:String(start),end:String(end)});
     numberInput.value=range[fields[step].key];
     updateRangeSummary();
@@ -195,6 +197,29 @@ async function registerQuranTool(){
         const result=await loadRange({s:input.surah,start:input.fromVerse??1,end:input.toVerse??verseCounts[input.surah-1]},{signal});
         return {isError:!result.ok,content:[{type:"text",text:result.ok?
           `Opened Surah ${result.s}, verses ${result.start} to ${result.end}.`:result.error}]};
+      }
+    });
+    await context.registerTool({
+      name:"navigate_quran_surah",
+      description:"Move to the next or previous Quran Surah/chapter relative to the currently displayed passage. Use for requests such as 'next Surah', 'previous Surah', 'next chapter', or 'go back one Surah' while the Quran app is active. Opens exactly one adjacent Surah in full, from verse 1 to its final verse, with automatic scrolling paused. Does not wrap past Surah 1 or 114. Open a passage first if none is currently displayed.",
+      inputSchema:{
+        type:"object",
+        properties:{direction:{type:"string",enum:["next","previous"],description:"Move forward one Surah (next) or back one Surah (previous)."}},
+        required:["direction"],
+        additionalProperties:false
+      },
+      async execute(input,{signal}={}){
+        const reply=(isError,text)=>({isError,content:[{type:"text",text}]});
+        if(!input || !["next","previous"].includes(input.direction))return reply(true,"Choose direction next or previous.");
+        if(currentSurah===null)return reply(true,"Open a Quran passage first, then ask for the next or previous Surah.");
+        if(surahMoving)return reply(true,"A Surah is already loading. Wait for it to open, then try again.");
+        const s=currentSurah+(input.direction==="next"?1:-1);
+        if(s<1 || s>114)return reply(true,s<1?"You are already at Surah 1; there is no previous Surah.":"You are already at Surah 114; there is no next Surah.");
+        surahMoving=true;
+        try{
+          const result=await loadRange({s,start:1,end:verseCounts[s-1]},{signal});
+          return reply(!result.ok,result.ok?`Opened Surah ${result.s}, verses ${result.start} to ${result.end}. Automatic scrolling is paused.`:result.error);
+        }finally{surahMoving=false;}
       }
     });
   }catch(e){
@@ -342,6 +367,7 @@ document.addEventListener("keydown",e=>{
 });
 
 const restored=restore();
+if(restored)currentSurah=Number(range.s);
 if(!restored){
   verses=[{number:1,text:"اضغط تحميل لاختيار السورة والآيات"}];
   render();

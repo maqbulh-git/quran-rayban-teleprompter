@@ -37,3 +37,5 @@ Hold-and-move speed input is confined to the reader while the selector is hidden
 The manual selector at index.html has no continuous-drag opt-in. Loading a passage navigates to reader.html, which opts into continuous drag in its initial CSS and restores the saved passage paused. Escape returns to index.html with a full navigation to reset the host input mode. Both pages register the same WebMCP passage tool. The app URL and selector layout remain the same.
 
 The reader footer Play/Pause icon is a real button and receives initial focus. Select/Enter or clicking it toggles auto-scroll. Hold-and-move remains available from both the reader and the focused Play/Pause button.
+
+WebMCP also registers navigate_quran_surah with direction next or previous. While a passage is displayed, ask Meta AI for the next or previous Surah. It opens one adjacent full chapter paused, stops at Surah 1/114, and uses the displayed chapter rather than unconfirmed selector edits.
