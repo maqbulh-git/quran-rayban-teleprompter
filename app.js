@@ -7,6 +7,7 @@ let speed = Number(localStorage.getItem("quran-speed") || 25);
 
 const $ = id => document.getElementById(id);
 const setup = $("setup"), reader = $("reader"), versesEl = $("verses");
+const playBtn=$("status");
 const title = $("title"), counter = $("counter"), message = $("message");
 const numberInput = $("numberInput"), backBtn = $("backBtn"), nextBtn = $("nextBtn");
 const decreaseBtn = $("decreaseBtn"), increaseBtn = $("increaseBtn");
@@ -156,7 +157,7 @@ async function loadRange(selection=range, {signal}={}){
     render(); saveCurrent();
     message.textContent="تم التحميل — اضغط Enter للتشغيل";
     setup.style.display="none";
-    reader.focus();
+    playBtn.focus();
     // Navigation reloads the host input mode; CSS changes cannot do this at runtime.
     // Defer until the current activation/WebMCP result can finish.
     if(!readerPage)setTimeout(()=>{window.location.href="reader.html";},300);
@@ -223,7 +224,9 @@ function restart(){
   stop();scrollY=0;versesEl.style.transform="translate3d(0,0,0)";
 }
 function updateStatus(){
-  $("status").textContent=playing?"⏸":"▶";
+  playBtn.textContent=playing?"⏸":"▶";
+  playBtn.setAttribute("aria-label",playing?"Pause auto-scroll":"Play auto-scroll");
+  playBtn.disabled=!readerPage;
   $("speed").textContent=`سرعة ${arabicDigits(speed)}`;
   localStorage.setItem("quran-speed",speed);
 }
@@ -259,26 +262,30 @@ function endSpeedDrag(){
   speedDrag=null;
   if(drag && reader.hasPointerCapture?.(drag.id))reader.releasePointerCapture(drag.id);
 }
-reader.addEventListener("pointerdown",e=>{
+function startSpeedDrag(e){
   if(setup.style.display!=="none" || e.isPrimary===false ||
      (e.button!==undefined&&e.button!==0) || !Number.isFinite(e.clientX))return;
   suppressReaderClickUntil=0;
   speedDrag={id:e.pointerId,x:e.clientX,speed,moved:false};
-  reader.setPointerCapture(e.pointerId);
-});
-reader.addEventListener("pointermove",e=>{
+}
+reader.addEventListener("pointerdown",startSpeedDrag);
+playBtn.addEventListener("pointerdown",startSpeedDrag);
+document.addEventListener("pointermove",e=>{
   if(!speedDrag || e.pointerId!==speedDrag.id || !Number.isFinite(e.clientX))return;
   const steps=Math.trunc((e.clientX-speedDrag.x)/25);
-  if(steps!==0)speedDrag.moved=true;
+  if(steps!==0){
+    speedDrag.moved=true;
+    if(!reader.hasPointerCapture?.(e.pointerId))reader.setPointerCapture(e.pointerId);
+  }
   const next=Math.max(5,Math.min(80,speedDrag.speed+steps*5));
   if(next!==speed){speed=next;updateStatus();}
 });
-reader.addEventListener("pointerup",e=>{
+document.addEventListener("pointerup",e=>{
   if(speedDrag?.id!==e.pointerId)return;
   if(speedDrag.moved)suppressReaderClickUntil=performance.now()+500;
   endSpeedDrag();
 });
-reader.addEventListener("pointercancel",()=>{endSpeedDrag();suppressReaderClickUntil=0;});
+document.addEventListener("pointercancel",()=>{endSpeedDrag();suppressReaderClickUntil=0;});
 reader.addEventListener("lostpointercapture",endSpeedDrag);
 document.addEventListener("visibilitychange",()=>{
   if(document.hidden){endSpeedDrag();suppressReaderClickUntil=0;}
@@ -297,10 +304,12 @@ backBtn.addEventListener("click",()=>{saveStep();showStep(step-1)});
 $("testInputBtn").addEventListener("click",()=>{window.location.href="input-test.html"});
 numberInput.addEventListener("input",saveStep);
 numberInput.addEventListener("change",saveStep);
-reader.addEventListener("click",e=>{
+function activatePlayback(e){
   if(e.detail!==0 && performance.now()<suppressReaderClickUntil){suppressReaderClickUntil=0;return;}
-  if(setup.style.display==="none")playPause();
-});
+  if(readerPage && setup.style.display==="none")playPause();
+}
+reader.addEventListener("click",activatePlayback);
+playBtn.addEventListener("click",activatePlayback);
 
 document.addEventListener("keydown",e=>{
   if(e.isComposing || e.defaultPrevented)return;
@@ -339,7 +348,7 @@ if(!restored){
 }
 updateStatus();
 if(readerPage){
-  if(restored){setup.style.display="none";reader.focus();}
+  if(restored){setup.style.display="none";playBtn.focus();}
   else window.location.replace("index.html");
 }else showStep(0);
 
