@@ -249,7 +249,7 @@ async function registerQuranTool(){
     });
     await context.registerTool({
       name:"search_quran_verse_text",
-      description:"Find a Quran verse from Arabic words the user recites, quotes, or remembers. Pass the Arabic transcript, not a guessed Surah/verse number. Searches a consecutive phrase, ignoring diacritics and common letter variants. Supply at least two Arabic words. A unique match opens that one verse paused. If several verses match, returns candidates without changing the passage: ask for more words or clarification, then use open_quran_passage for the chosen reference. This tool receives text only; it does not listen to audio or identify a reciter.",
+      description:"Find a Quran verse from Arabic words the user recites, quotes, or remembers. Pass the Arabic transcript, not a guessed Surah/verse number. Searches a consecutive phrase, ignoring diacritics and common letter variants. Supply at least two Arabic words. A unique match opens from that verse through the end of its Surah, paused. If several verses match, returns candidates without changing the passage: ask for more words or clarification, then use open_quran_passage for the chosen reference. This tool receives text only; it does not listen to audio or identify a reciter.",
       inputSchema:{
         type:"object",
         properties:{text:{type:"string",minLength:3,maxLength:1000,description:"At least two consecutive Arabic words from the verse; omit any introductory command or explanation."}},
@@ -270,8 +270,8 @@ async function registerQuranTool(){
             return reply(false,JSON.stringify({totalMatches:matches.length,candidates,opened:false,instruction:"Multiple verses match. Ask for more Arabic words or clarification; do not choose a verse automatically."}));
           }
           const match=matches[0];
-          const result=await loadRange({s:match.surah,start:match.verse,end:match.verse},{signal});
-          return reply(!result.ok,result.ok?JSON.stringify({opened:true,surah:match.surah,surahName:match.surahName,verse:match.verse,text:match.text,automaticScrolling:"paused"}):result.error);
+          const result=await loadRange({s:match.surah,start:match.verse,end:verseCounts[match.surah-1]},{signal});
+          return reply(!result.ok,result.ok?JSON.stringify({opened:true,surah:match.surah,surahName:match.surahName,verse:match.verse,toVerse:result.end,text:match.text,automaticScrolling:"paused"}):result.error);
         }catch(e){
           return reply(true,signal?.aborted||e.name==="AbortError"?"Verse search was cancelled.":"Could not search the Quran. Check the internet connection and try again.");
         }
