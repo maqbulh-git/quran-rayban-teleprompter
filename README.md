@@ -39,3 +39,5 @@ The manual selector at index.html has no continuous-drag opt-in. Loading a passa
 The reader footer Play/Pause icon is a real button and receives initial focus. Select/Enter or clicking it toggles auto-scroll. Hold-and-move remains available from both the reader and the focused Play/Pause button.
 
 WebMCP also registers navigate_quran_surah with direction next or previous. While a passage is displayed, ask Meta AI for the next or previous Surah. It opens one adjacent full chapter paused, stops at Surah 1/114, and uses the displayed chapter rather than unconfirmed selector edits.
+
+WebMCP search_quran_verse_text accepts at least two consecutive Arabic words. It searches the plain Arabic Quran edition with diacritics/letter normalization while the reader keeps displaying Uthmani text. A unique result opens one verse paused; ambiguous results return up to 10 candidates and the total count, without changing the passage. No audio recording or speech recognition is added. The first search downloads the corpus; successful searches reuse it in memory.

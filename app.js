@@ -171,6 +171,31 @@ async function loadRange(selection=range, {signal}={}){
   }
 }
 
+// Search the plain Arabic edition; continue displaying Uthmani text in the reader.
+let searchCorpus=null;
+function normalizeVerseText(text){
+  return text.normalize("NFKC")
+    .replace(/[\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed\u0640]/g,"")
+    .replace(/[أإآٱ]/g,"ا").replace(/ى/g,"ي").replace(/ؤ/g,"و").replace(/ئ/g,"ي")
+    .replace(/[^\u0621-\u063a\u0641-\u064a]+/g," ").trim().replace(/\s+/g," ");
+}
+async function getSearchCorpus(signal){
+  signal?.throwIfAborted();
+  if(searchCorpus)return searchCorpus;
+  const res=await fetch("https://api.alquran.cloud/v1/quran/quran-simple-clean",{cache:"force-cache",signal});
+  if(!res.ok)throw new Error("HTTP "+res.status);
+  const data=(await res.json()).data;
+  if(!Array.isArray(data?.surahs)||data.surahs.length!==114)throw new Error("corpus");
+  const index=data.surahs.flatMap(chapter=>chapter.ayahs.map(ayah=>({
+    surah:chapter.number,surahName:chapter.name,verse:ayah.numberInSurah,text:ayah.text,
+    normalized:" "+normalizeVerseText(ayah.text)+" "
+  })));
+  if(index.length!==6236)throw new Error("incomplete corpus");
+  signal?.throwIfAborted();
+  searchCorpus=index;
+  return index;
+}
+
 async function registerQuranTool(){
   const context=document.modelContext;
   if(typeof context?.registerTool!=="function")return;
@@ -220,6 +245,36 @@ async function registerQuranTool(){
           const result=await loadRange({s,start:1,end:verseCounts[s-1]},{signal});
           return reply(!result.ok,result.ok?`Opened Surah ${result.s}, verses ${result.start} to ${result.end}. Automatic scrolling is paused.`:result.error);
         }finally{surahMoving=false;}
+      }
+    });
+    await context.registerTool({
+      name:"search_quran_verse_text",
+      description:"Find a Quran verse from Arabic words the user recites, quotes, or remembers. Pass the Arabic transcript, not a guessed Surah/verse number. Searches a consecutive phrase, ignoring diacritics and common letter variants. Supply at least two Arabic words. A unique match opens that one verse paused. If several verses match, returns candidates without changing the passage: ask for more words or clarification, then use open_quran_passage for the chosen reference. This tool receives text only; it does not listen to audio or identify a reciter.",
+      inputSchema:{
+        type:"object",
+        properties:{text:{type:"string",minLength:3,maxLength:1000,description:"At least two consecutive Arabic words from the verse; omit any introductory command or explanation."}},
+        required:["text"],additionalProperties:false
+      },
+      async execute(input,{signal}={}){
+        const reply=(isError,text)=>({isError,content:[{type:"text",text}]});
+        if(typeof input?.text!=="string" || input.text.length>1000)return reply(true,"Supply up to 1000 characters of Arabic verse text.");
+        const phrase=normalizeVerseText(input.text);
+        if(!phrase || phrase.split(" ").length<2)return reply(true,"Supply at least two consecutive Arabic words from the verse.");
+        try{
+          const corpus=await getSearchCorpus(signal);
+          signal?.throwIfAborted();
+          const matches=corpus.filter(v=>v.normalized.includes(" "+phrase+" "));
+          if(!matches.length)return reply(false,"No matching verse found. Ask for a longer or corrected Arabic phrase. No passage was changed.");
+          if(matches.length>1){
+            const candidates=matches.slice(0,10).map(({surah,surahName,verse,text})=>({surah,surahName,verse,text}));
+            return reply(false,JSON.stringify({totalMatches:matches.length,candidates,opened:false,instruction:"Multiple verses match. Ask for more Arabic words or clarification; do not choose a verse automatically."}));
+          }
+          const match=matches[0];
+          const result=await loadRange({s:match.surah,start:match.verse,end:match.verse},{signal});
+          return reply(!result.ok,result.ok?JSON.stringify({opened:true,surah:match.surah,surahName:match.surahName,verse:match.verse,text:match.text,automaticScrolling:"paused"}):result.error);
+        }catch(e){
+          return reply(true,signal?.aborted||e.name==="AbortError"?"Verse search was cancelled.":"Could not search the Quran. Check the internet connection and try again.");
+        }
       }
     });
   }catch(e){
