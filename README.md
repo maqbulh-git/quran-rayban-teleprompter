@@ -41,3 +41,5 @@ The reader footer Play/Pause icon is a real button and receives initial focus. S
 WebMCP also registers navigate_quran_surah with direction next or previous. While a passage is displayed, ask Meta AI for the next or previous Surah. It opens one adjacent full chapter paused, stops at Surah 1/114, and uses the displayed chapter rather than unconfirmed selector edits.
 
 WebMCP search_quran_verse_text accepts at least two consecutive Arabic words. It searches the plain Arabic Quran edition with diacritics/letter normalization while the reader keeps displaying Uthmani text. A unique result opens from that verse to the end of its Surah, paused; ambiguous results return up to 10 candidates and the total count, without changing the passage. No audio recording or speech recognition is added. The first search downloads the corpus; successful searches reuse it in memory.
+
+Manual selection includes a ×1/×10/×50 step-size button. Activate it to cycle the increment used by both − and +. Values stay within the Surah/verse limits. Each selector field starts at ×1; choosing a step size never changes the number by itself.
