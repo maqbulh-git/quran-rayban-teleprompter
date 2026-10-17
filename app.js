@@ -8,7 +8,7 @@ let speed = Number(localStorage.getItem("quran-speed") || 25);
 
 const $ = id => document.getElementById(id);
 const setup = $("setup"), reader = $("reader"), versesEl = $("verses");
-const playBtn=$("status");
+const playBtn=$("status"), resumeBtn=$("resumeBtn");
 const title = $("title"), counter = $("counter"), message = $("message");
 const numberInput = $("numberInput"), backBtn = $("backBtn"), nextBtn = $("nextBtn");
 const decreaseBtn = $("decreaseBtn"), increaseBtn = $("increaseBtn");
@@ -389,6 +389,7 @@ function adjustNumber(delta){
   numberInput.value=String(Math.max(1,Math.min(limit,current+delta*numberStep)));
   saveStep();
 }
+resumeBtn.addEventListener("click",()=>{window.location.href="reader.html";});
 decreaseBtn.addEventListener("click",()=>adjustNumber(-1));
 increaseBtn.addEventListener("click",()=>adjustNumber(1));
 nextBtn.addEventListener("click",advance);
@@ -406,7 +407,7 @@ playBtn.addEventListener("click",activatePlayback);
 document.addEventListener("keydown",e=>{
   if(e.isComposing || e.defaultPrevented)return;
   if(setup.style.display!=="none"){
-    const setupControls=[decreaseBtn,increaseBtn,stepSizeBtn,nextBtn,...(backBtn.hidden?[]:[backBtn]),$("testInputBtn")];
+    const setupControls=[...(resumeBtn.hidden?[]:[resumeBtn]),decreaseBtn,increaseBtn,stepSizeBtn,nextBtn,...(backBtn.hidden?[]:[backBtn]),$("testInputBtn")];
     const index=setupControls.indexOf(document.activeElement);
     if(index<0 || e.target!==document.activeElement)return;
     if(e.key==="ArrowUp"||e.key==="ArrowDown"){
@@ -443,6 +444,10 @@ updateStatus();
 if(readerPage){
   if(restored){setup.style.display="none";playBtn.focus();}
   else window.location.replace("index.html");
-}else showStep(0);
+}else {
+  resumeBtn.hidden=!restored;
+  showStep(0);
+  if(restored)resumeBtn.focus();
+}
 
 registerQuranTool();
